@@ -1,0 +1,97 @@
+Puzzle 2. Here we go 
+
+00      36        CALLDATASIZE      <- This records the size of call data we sent along 
+// It doesn't take any input from stack but places output on the stack 
+// Read size of calldata -> put onto stack 
+
+calldata: 2 bytes - 0x0001
+[Stack]
+2
+
+01      6000      PUSH1 00
+03      6000      PUSH1 00
+// Push other two 00 
+[Memory]
+[Stack]
+0
+0
+2
+
+05      37        CALLDATACOPY
+// CALLDATACOPY : destOffset, offset, size from stack 
+// Now copy that call data into memory 
+[Memory]
+0001000000000000000000000000000000000000000000000000000000000000
+[Stack]
+
+06      36        CALLDATASIZE
+07      6000      PUSH1 00
+09      6000      PUSH1 00
+0B      F0        CREATE
+// Contract creation with [value, offset, size] from stack 
+// size (byte size to copy - this is the size of initialization code that we copied to memory
+// earlier on 05 CALLDATACOPY.)
+
+[Memory]
+0001000000000000000000000000000000000000000000000000000000000000
+[Stack]
+3fa89944e11022fc67d12a9d2bf35ebe1164f7ef        // Contract created at this address 
+// This will only happen on certain inputs. For example, keeping calldata 0 size, contract 
+// creation won't yeild an address stating that it failed to created a contract 
+
+0C      6000      PUSH1 00
+0E      80        DUP1
+0F      80        DUP1
+10      80        DUP1
+11      80        DUP1
+12      94        SWAP5
+13      5A        GAS
+14      F1        CALL
+// CALL the code stored at contract address 
+// takes [gas, address, value, argsOffset, argsSize, retOffset, retSize]
+// 7 inputs from stack and returns 1/0 as success result and store it on stack 
+
+15      3D        RETURNDATASIZE
+// Return size of previous call is then copied on to the stack 
+// Let's say you put random data on initial calldata and current layout of memory suggests this 
+[Memory]
+0001000000000000000000000000000000000000000000000000000000000000
+// There's no code for call to execute and have any return of any size 
+// So naturally RETURNDATASIZE would be 0 here 
+[Stack]
+0       // RETURNDATASIZE
+1       // 1 success from previous CALL operation
+
+16      600A      PUSH1 0A
+
+18      14        EQ
+// This is where we need to result into true so later JUMPI can 
+// conditionally jump to 1F JUMPDEST
+
+19      601F      PUSH1 1F
+1B      57        JUMPI
+1C      FE        INVALID
+1D      FE        INVALID
+1E      FE        INVALID
+1F      5B        JUMPDEST
+20      00        STOP
+
+// Current task: figure out a calldata that returns something of size 0A (10 bytes)
+// A function that returns 10 bytes - in asm 
+
+// RETURN needs [offset, size] // we need return size of 10 bytes - 0a 
+PUSH1 0A 
+PUSH1 00
+RETURN 
+
+// RETURN(OFFSET: 00, SIZE: 0A)
+// 0X600A6000F30000000000   - make calldata 10 bytes - where init code is 600A6000F3
+
+// nope. even with this code, at RETURNDATASIZE instruction we have 0 on stack 
+[Memory]
+600a600af3000000000000000000000000000000000000000000000000000000 
+[Stack]
+0
+1
+
+// 
