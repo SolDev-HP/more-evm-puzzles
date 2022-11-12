@@ -1,0 +1,78 @@
+// Code 
+3660006000373660006000F06000808080935AF460055460aa14601e57fe5b00
+
+00      36        CALLDATASIZE
+01      6000      PUSH1 00
+03      6000      PUSH1 00
+05      37        CALLDATACOPY
+06      36        CALLDATASIZE
+07      6000      PUSH1 00
+09      6000      PUSH1 00
+0B      F0        CREATE        // This creates a contract similar to previous one
+0C      6000      PUSH1 00
+0E      80        DUP1
+0F      80        DUP1
+10      80        DUP1
+11      93        SWAP4
+12      5A        GAS
+13      F4        DELEGATECALL  // And it performs delegate call to the contract
+14      6005      PUSH1 05
+16      54        SLOAD         // Load from storage
+17      60AA      PUSH1 AA      // Loaded value should be AA as EQ is performed on it 
+19      14        EQ
+1A      601E      PUSH1 1E
+1C      57        JUMPI         // Conditional jump to location
+1D      FE        INVALID
+1E      5B        JUMPDEST
+1F      00        STOP
+
+// So if we want to jump to 1E with JUMPI, we need AA as result of SLOAD operation 
+SLOAD [key] 
+-> stack input is 32byte key from storage 
+-> output is the value stored at that storage location
+
+// As EQ will put the condition on stack that JUMPI will refer to before jumping. on 0 it doesnt 
+
+// For delegatecall 
+DELEGATECALL [] // Args same as CALL but context is self with code from contract 
+// evm.codes -> Creates a new sub context as if calling itself, but with the code of the given account. 
+// In particular the storage, the current sender and the current value remain the same.
+
+// Contract code 
+// store AA at 0x0 storage location <- PUSH1 0x05 at 14 indicates that storage location should be 0x05? yes
+/// evm.codes -> Load word from storage and key is taken as input from the stack 
+// output the value at that storage location 
+
+// sstore takes [key][value] from the stack 
+
+SSTORE(0x05, 0xAA)
+
+PUSH1 0xAA 
+PUSH2 0x05
+SSTORE 
+RETURN          // NOT NEEDED - DELEGATECALL context will revert 
+
+// So from sol2 - contract wrapper code 
+[packing bytecode]
+600x600y600039600x600yf3 
+[contract code]
+60AA600555F3
+
+// final calldata 
+0x6006600c60003960066000f360AA600555F3
+// Correction: we don't need RETURN at the end
+// correct code: 0x6006600c60003960066000f360AA600555
+
+// AT 13 DELEGATECALL
+[Memory]
+6006600c60003960066000f360aa600555f30000000000000000000000000000
+[Stack]
+0
+[Storage]
+CONTRACT
+0x9bbfed6889322e016e0a02ee459d306fc19545d8
+SLOT
+0000000000000000000000000000000000000000000000000000000000000005
+VALUE
+aa
+
