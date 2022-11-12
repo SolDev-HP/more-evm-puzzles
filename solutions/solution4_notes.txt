@@ -1,0 +1,160 @@
+// Code 
+30313660006000373660003031F0319004600214601857FD5B00
+
+############
+# Puzzle 4 #
+############
+
+00      30        ADDRESS           <-- takes the address and gets the BALANCE
+01      31        BALANCE
+// So we need to pass something along the value 
+
+02      36        CALLDATASIZE
+// takes calldatasize, hence we need some calldata as well 
+
+03      6000      PUSH1 00
+05      6000      PUSH1 00
+07      37        CALLDATACOPY
+// Probably contract code being copied to memory 
+// CALLDATACOPY destOffset, offset, size 
+
+08      36        CALLDATASIZE
+09      6000      PUSH1 00
+0B      30        ADDRESS
+0C      31        BALANCE
+0D      F0        CREATE            // takes value, offset, size <-- passes the address balance here to contract
+// If we pass along 0x01 codedata and 1 wei value 
+[Stack] at this point before executing CREATE
+1
+0
+1
+1
+
+// CREATE will return 0 if execution reverts 
+// Following check is to make sure that address holds balance 2x more than 
+// contract balance that was created at 0D 
+
+0E      31        BALANCE           // Contract balance
+0F      90        SWAP1             
+10      04        DIV               // Div performed on balances 
+11      6002      PUSH1 02          // One balance needs to be double than the other 
+13      14        EQ
+14      6018      PUSH1 18
+16      57        JUMPI
+17      FD        REVERT
+18      5B        JUMPDEST
+19      00        STOP
+
+// This makes contract to have 0 value at the end of the tx, we need contract to send back 2/3 of what's received
+// A selfdestruct will send back the value to the creator 
+takes address from stack as input 
+FF
+// So an address opcode to put current account address on stack 
+30 
+outputs address on stack 
+
+// So now the init code for contract 
+[packing bytecode]
+push length 
+push offset at which the contract code starts 
+push location // memory slot at which we stored the code 
+
+// Final codedata 
+0x6002600c60003960026000f330ff
+
+// Do we need wrapping code? 
+// At present we want CREATE to execute the init code, so init code should send back 2/3 value back 
+
+
+// Process 
+send 2 wei 
+CREATE init code includes CREATE with half of value - so send 1 wei to new create 
+
+Init code, push 01 on stack 
+6001 
+
+value offset size 
+
+
+push 0x02 
+address 
+balance // should be 2 
+
+div     a // b 
+1       // on stack that'll be used for value for next CREATE opcode 
+
+
+6002 3031 04 -> 1 on stack -> should be position for value in CREATE 
+
+F0 00 02    // Create value(1 from stack) + offset for memory access is 00 + size to copy for init code is 02 
+
+// what code should be in mem 
+0x6001 // just push 01 on stack 
+
+
+// Code forming 
+packer 
+         |-position in this bytecode seq where the init code can be found 
+         v
+0x6002600c60003960026000f3_|init-code is here
+     ^
+     |-length of code to copy
+
+PUSH1 0x02
+PUSH1 0x00
+PUSH1 0x02
+ADDRESS
+BALANCE
+DIV 
+
+[Stack]
+1
+0
+2 
+
+600260006002303104 
+CREATE 
+F0 
+
+// initcode 
+600260006002303104F0 - 10 bytes - 0a size for packer // X
+
+// packer code 
+0x600a600c60003960026000f3
+
+// final code 
+0x600a600c60003960026000f3  600260006002303104F0
+
+// Now calldata copy when using CREATE 
+36 
+
+00      36        CALLDATASIZE
+01      6000      PUSH1 00
+03      6000      PUSH1 00
+05      37        CALLDATACOPY      // destOffset, offset, size
+// dest memory byte offset -> say 0 
+// code to copy there -> offset -> 0c 
+// size - CALLDATASIZE will handle that 
+
+06      36        CALLDATASIZE
+07      6000      PUSH1 00
+09      6000      PUSH1 00
+0B      F0        CREATE
+
+     v- code len  
+36 600C 6000 <- dest mem offset 
+37 
+CALLDATASIZE again so CREATE can use it as size of init code to copy 
+36 600C 6000 F0
+
+               v- length is going to change after we calculate contract init code 
+[Wrapper] 0x600a600c60003960026000f3 
+[Contract init code] 36 600C 6000 37 36 600C 6000 F0
+
+[Contract init] - 60 00 60 00 60 02 30 31 04 F0
+
+
+// final 
+0x600a600c60003960026000f3 600060006002303104F0
+// with value 
+2
