@@ -93,3 +93,32 @@ RETURN
 [Stack]
 0
 1
+
+// this was unpacked version of contract bytecode 
+// Our final contract code 0X600A6000F3 - 5 bytes 
+
+push1 0x05 // final size of the contract bytecode 
+push1 0x    // offset at which the contract code starts 
+
+6005 
+600x
+push1 0x00  // memory slot at which we send the code 
+6000 
+codecopy    // 39 
+
+push length of the code to pick 
+6005 
+push the memory location where to pick code from 
+6000
+return 
+F3
+
+// So offset would be 0c as rest of the things are packing bytecode 
+[packing bytecode]
+600x600y600039600x600yf3 
+[contract code]
+600A6000F3
+
+// done 
+// final code for calldata 
+0x6006600c60003960066000f3600A6000F3
