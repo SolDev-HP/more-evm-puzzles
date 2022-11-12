@@ -1,0 +1,23 @@
+// Code 
+7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff03401600114602a57fd5b00
+
+############
+# Puzzle 6 #
+############
+
+00      7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0      PUSH32 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0
+21      34                                                                      CALLVALUE
+22      01                                                                      ADD
+23      6001                                                                    PUSH1 
+01          25      14                                           EQ
+26      602A                                                                    PUSH1 2A28      57
+                                           JUMPI
+29      FD                                                                      REVERT
+2A      5B                                                                      JUMPDEST2B      00
+                                           STOP
+
+
+// So ADD would add CALLVALUE and 7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0
+// If we can overflow that add, we can arrive at EQ being true for 
+
+So to send F+2 value with call - 17 wei 
