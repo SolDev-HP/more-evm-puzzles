@@ -1,0 +1,41 @@
+// Code 
+5a345b60019003806000146011576002565b5a90910360a614601d57fd5b00
+
+############
+# Puzzle 7 #
+############
+
+00      5A        GAS
+01      34        CALLVALUE
+02      5B        JUMPDEST
+03      6001      PUSH1 01
+05      90        SWAP1
+06      03        SUB
+07      80        DUP1
+08      6000      PUSH1 00
+0A      14        EQ
+0B      6011      PUSH1 11
+0D      57        JUMPI             // At this point we want to jump to 11
+0E      6002      PUSH1 02
+10      56        JUMP
+
+11      5B        JUMPDEST          
+12      5A        GAS
+13      90        SWAP1
+14      91        SWAP2
+15      03        SUB
+16      60A6      PUSH1 A6
+18      14        EQ
+19      601D      PUSH1 1D
+1B      57        JUMPI
+1C      FD        REVERT
+1D      5B        JUMPDEST
+1E      00        STOP
+
+// so value 1 lets you jump to 11 
+by the time we reach that point, gas used - previous gas = a6 = 199
+
+// one loop inside jumpdest(02) and jump(10) cost ~~ 37 
+spend 4 interations inside that loop and come out with gas amount where 
+
+previous gas - remaining gas = a6 
