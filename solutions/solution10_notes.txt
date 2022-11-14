@@ -1,0 +1,58 @@
+// Code 
+602060006000376000517ff0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f01660206020600037600051177fabababababababababababababababababababababababababababababababab14605d57fd5b00
+
+
+00      6020                                                                    PUSH1 20
+02      6000                                                                    PUSH1 00
+04      6000                                                                    PUSH1 00
+06      37                                                                      CALLDATACOPY
+07      6000                                                                    PUSH1 00
+09      51                                                                      MLOAD
+0A      7FF0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0      PUSH32 F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0
+2B      16                                                                      AND
+2C      6020                                                                    PUSH1 20
+2E      6020                                                                    PUSH1 20
+30      6000                                                                    PUSH1 00
+32      37                                                                      CALLDATACOPY
+33      6000                                                                    PUSH1 00
+35      51                                                                      MLOAD
+36      17                                                                      OR
+37      7FABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB      PUSH32 ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB
+58      14                                                                      EQ
+59      605D                                                                    PUSH1 5D
+5B      57                                                                      JUMPI
+5C      FD                                                                      REVERT
+5D      5B                                                                      JUMPDEST
+5E      00                                                                      STOP
+
+
+[00-06]push 20 push 00 push 00 
+then calldatacopy  [destOffset, offset, size]
+
+dest is 00 and offset 00 -> size is 32 bytes (hex is 20)
+
+[07-2B] push 00 mload 
+value loaded onto the stack, the same value that we stored - should be 32 byte
+
+AND with F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0
+
+[2C-32] push 20 push 20 push 00 
+then calldatacopy [destOffset, offset, size]
+destOffset is 00, offset now 32bytes later, and size is 32 bytes 
+
+again copy the same calldata 
+and load 00 from memory and perform 
+
+OR with result of previous AND 
+
+it should result into 
+ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB
+
+
+So first mem copy would be 32 bytes of calldata, and the next copy would be from calldata for remaining 32 bytes 
+
+0xABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB  // first calldatacopy 
+ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB  // second calldatacopy  
+
+// final calldata 
+0xABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB
