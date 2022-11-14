@@ -1,0 +1,31 @@
+// Code 
+34600052602060002060F81C60A814601657FDFDFDFD5B00
+
+############
+# Puzzle 9 #
+############
+
+00      34        CALLVALUE
+01      6000      PUSH1 00
+03      52        MSTORE        <-- Store callvalue at memory location 00 (pushed by prev instr)
+04      6020      PUSH1 20
+06      6000      PUSH1 00
+08      20        SHA3          <-- perform sha3 
+09      60F8      PUSH1 F8
+0B      1C        SHR           <-- shift right
+0C      60A8      PUSH1 A8
+0E      14        EQ
+0F      6016      PUSH1 16
+11      57        JUMPI         <-- conditional jump to 16
+12      FD        REVERT
+13      FD        REVERT
+14      FD        REVERT
+15      FD        REVERT
+16      5B        JUMPDEST
+17      00        STOP
+
+// The point of this was to find a value (callvalue)
+// that's when performed sha3 on, results into a kaccak code that 
+// starts with a8, as SHR is performed to take first byte of the sha3 result 
+
+// I tried 69 randomly and it worked :D
